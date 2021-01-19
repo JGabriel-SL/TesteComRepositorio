@@ -17,9 +17,9 @@
 
               <div>
                 <p v-show="error">Erro ao cadastrar!</p>
-                <form>
+                <form method="POST">
                   <div class="input-margin">
-                      <label class="label-form">Nome:</label><input v-model="nameField" type="text" placeholder="Nome" class="input is-rounded">
+                      <label class="label-form">Nome:</label><input name="name" v-model="nameField" type="text" placeholder="Nome" class="input is-rounded">
                   </div>
                   <div class="input-margin">
                     <label class="label-form">Email:</label><input v-model="emailField" type="text" placeholder="E-mail" class="input is-rounded">
@@ -63,13 +63,20 @@
 </template>
 
 <script>
-
-// import Form from './components/Form'
 import Aluno from './components/Aluno'
+
+import axios from 'axios'
 
 
 export default {
   name: 'App',
+  created: function() {
+    axios.get('http://localhost:8000/student').then(res => {
+      this.studentsData = res.data
+      console.log(res.data)
+      
+    })
+  },
   data() {
     return {
       error: false,
@@ -80,78 +87,36 @@ export default {
       class_nField: '',
       school_shiftField: '',
       searching: '',
-      students: [
-        {
-          id: 1,
-          name: 'João Gabriel',
-          email: 'gabriel@gmail.com',
-          number: 'xxxx-xxxx',
-          register: '123123',
-          class_n: '3',
-          school_shift: 'Integral'
-        },
-        {
-          id: 2,
-          name: 'Giulia Trevisan',
-          email: 'giutrevisan@gmail.com',
-          number: 'xxxx-xxxx',
-          register: '213123',
-          class_n: '3',
-          school_shift: 'Integral'
-        },
-        {
-          id: 3,
-          name: 'João P. Guarany',
-          email: 'jp.guarany@gmail.com',
-          number: 'xxxx-xxxx',
-          register: '414132',
-          class_n: '3',
-          school_shift: 'Integral'
-        },
-        {
-          id: 4,
-          name: 'Everton Wendell',
-          email: 'everton_wendell@gmail.com',
-          number: 'xxxx-xxxx',
-          register: '212321',
-          class_n: '3',
-          school_shift: 'Integral'
-        },
-        {
-          id: 5,
-          name: 'Guilherme Feijo',
-          email: 'guilherme@gmail.com',
-          number: 'xxxx-xxxx',
-          register: '123213',
-          class_n: '3',
-          school_shift: 'Integral'
-        },
-        {
-          id: 6,
-          name: 'Vinicius Mota',
-          email: 'Vini.mota@gmail.com',
-          number: 'xxxx-xxxx',
-          register: '123412',
-          class_n: '3',
-          school_shift: 'Integral'
-        }
-      ]
+      studentsData: [],
+      student_Data: [],
+      obj :{},
+      data: {}
     }
   },
   methods: {
-    register: function() {
+    register: async function() {
       if(this.nameField == "" || this.nameField === " " || this.nameField.length < 3) {
           this.error = true
       } else {
         this.error = false
-        this.students.push({
-            id: Date.now(),
-            name: this.nameField,
-            email: this.emailField,
-            number: this.numberField,
-            register: this.registerField,
-            class_n: this.class_nField,
-            school_shift: this.school_shiftField
+        this.data = {
+            id : Date.now(),
+            name : this.nameField,
+            email : this.emailField,
+            number : this.numberField,
+            registerr : this.registerField,
+            class_n : this.class_nField,
+            school_shift : this.school_shiftField
+          }
+        axios.post('http://localhost:8000/register', this.data).then(res => {
+          console.log(res)
+          return {
+            teste: "teste"
+          }
+        })
+        axios.get('http://localhost:8000/student').then(res => {
+          this.studentsData = res.data
+          console.log(res.data)
         })
       }
       this.nameField = ''
@@ -162,25 +127,29 @@ export default {
       this.school_shiftField = ''
     },
     deletar: function($event) {
-      console.log("hhahahaha")
-      console.log($event)
       let id = $event.student_id
-      let newArray = this.students.filter(student => student.id != id)
-      this.students = newArray
+      axios.delete(`http://localhost:8000/student/${id}`).then(res => { console.log("deletei ", res)})
+      axios.get('http://localhost:8000/student').then(res => {
+        this.studentsData = res.data
+      })
     },
     atualizar: function($event) {
       let id = $event.student_id
-      this.students.forEach(student => {
-        if (student.id == id) {
-          student.name = $event.student.name
-          student.email = $event.student.email
-          student.number = $event.student.number
-          student.register = $event.student.register
-          student.class_n = $event.student.class_n
-          student.school_shift = $event.student.school_shift
-        }
-      });
-      
+      this.data = {
+        id : id,
+        name : $event.student.name,
+        email : $event.student.email,
+        number : $event.student.number,
+        registerr : $event.student.register,
+        class_n : $event.student.class_n,
+        school_shift : $event.student.school_shift
+      }
+      axios.put(`http://localhost:8000/student/${id}`, this.data).then(res => {
+        console.log(res.data)
+      })
+       axios.get('http://localhost:8000/student').then(res => {
+        this.studentsData = res.data
+      }) 
     }
   },
   components: {
@@ -190,9 +159,9 @@ export default {
   computed: {
     search: function() {
       if(this.searching == '' | this.searching == ' ') {
-        return this.students
+        return this.studentsData
       } else {
-        return this.students.filter(student => !student.name.toLowerCase().indexOf(this.searching.toLowerCase()))
+        return this.studentsData.filter(student => !student.name.toLowerCase().indexOf(this.searching.toLowerCase()))
       }
     }
   }
