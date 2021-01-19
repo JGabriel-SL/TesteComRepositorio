@@ -19,16 +19,12 @@ class StudentRequest(BaseModel):
     class_n: str
     school_shift: str
 
-class Studentt(BaseModel):
-    phone: str
-    name: str
-
 app = FastAPI()
 
 origins = [
     "http://localhost:8080",
     "http://localhost:8000/register",
-    "http://localhost:8000/student/3"
+    "http://localhost:8000/student"
 ]
 
 app.add_middleware(
